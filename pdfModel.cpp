@@ -27,7 +27,8 @@
 PdfModel::PdfModel(QQuickItem *parent):
     QQuickItem(parent),
     numPages(0),
-    loaded(false)
+    loaded(false),
+    document(0)
 {
 }
 
@@ -115,4 +116,6 @@ int PdfModel::loadProvider()
 
 PdfModel::~PdfModel()
 {
+  if (document)
+    delete document;
 }
