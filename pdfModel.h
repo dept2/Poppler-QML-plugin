@@ -26,37 +26,38 @@
 
 class PdfModel : public QQuickItem
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(PdfModel)
+  Q_OBJECT
+  Q_DISABLE_COPY(PdfModel)
 
-public:
-    explicit PdfModel(QQuickItem *parent = 0);
+  public:
+    explicit PdfModel(QQuickItem* parent = nullptr);
     virtual ~PdfModel();
 
     Q_PROPERTY(QString path READ getPath WRITE setPath NOTIFY pathChanged)
-    Q_PROPERTY(int numPages READ getNumPages NOTIFY numPagesChanged)
     Q_PROPERTY(bool loaded READ getLoaded NOTIFY loadedChanged)
+    Q_PROPERTY(QStringList pages READ getPages NOTIFY pagesChanged)
 
-    void setPath(QString &pathName);
+    void setPath(QString& pathName);
     QString getPath() const { return path; }
-    int getNumPages();
+    QStringList getPages() const;
     bool getLoaded() const;
 
-    QString path;
-    int numPages;
-    bool loaded;
-
-private:
-    int loadDocument(QString &pathNAme);
-    int loadProvider();
-
-    Poppler::Document *document;
-
-signals:
+  signals:
     void pathChanged(const QString& newPath);
-    void numPagesChanged(int numPages);
     void loadedChanged();
     void error(const QString& errorMessage);
+    void pagesChanged();
+
+
+  private:
+    int loadDocument(QString& pathName);
+    void loadProvider();
+    void clear();
+
+    Poppler::Document* document = nullptr;
+    QString providerName;
+    QString path;
+    QStringList pages;
 };
 
 QML_DECLARE_TYPE(PdfModel)

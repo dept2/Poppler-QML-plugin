@@ -24,11 +24,11 @@
 
 class PageImageProvider : public QQuickImageProvider
 {
-public:
-    PageImageProvider(Poppler::Document *pdfDocument);
-    QImage requestImage(const QString & id, QSize * size, const QSize & requestedSize);
+  public:
+    PageImageProvider(Poppler::Document* pdfDocument = nullptr);
+    QImage requestImage(const QString& id, QSize* size, const QSize& requestedSize);
 
-private:
+  private:
     Poppler::Document *document;
 };
 
