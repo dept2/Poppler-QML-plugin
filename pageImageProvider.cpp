@@ -34,6 +34,9 @@ QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSi
 {
   Q_UNUSED(size)
 
+  QTime t;
+  t.start();
+
   float scale = 1.0;
   QString type = id.section("/", 0, 0);
   QImage result;
@@ -65,6 +68,8 @@ QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSi
     DEBUG << "Resolution :" << res;
 
     result = page->renderToImage(scale * res, scale * res); //For poppler the first page have the id 0
+
+    DEBUG << "Page rendered in" << t.elapsed() << "ms.";
   }
 
   return result;

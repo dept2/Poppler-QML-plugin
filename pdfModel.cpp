@@ -54,6 +54,8 @@ QStringList PdfModel::getPages() const
 
 int PdfModel::loadDocument(QString& pathName)
 {
+  QTime t;
+  t.start();
   DEBUG << "Loading document...";
 
   clear();
@@ -68,10 +70,10 @@ int PdfModel::loadDocument(QString& pathName)
     return 0;
   }
 
-  DEBUG << "Document loaded successfully !";
-
   document->setRenderHint(Poppler::Document::Antialiasing, true);
   document->setRenderHint(Poppler::Document::TextAntialiasing, true);
+
+  DEBUG << "Document loaded successfully in" << t.elapsed() << "ms.";
 
   return 1;
 }
