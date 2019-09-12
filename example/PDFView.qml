@@ -20,8 +20,6 @@ Item {
     anchors.bottomMargin: 10
     spacing: 20
 
-    property int __delegateWidth: parent.width
-
     boundsBehavior: Flickable.StopAtBounds
 
     model: poppler.pages
@@ -71,6 +69,7 @@ Item {
 
   MouseArea {
     anchors.fill: parent
+    acceptedButtons: Qt.NoButton
     onWheel: {
       if (wheel.modifiers & Qt.ControlModifier) {
         if (wheel.angleDelta.y > 0) {
