@@ -16,20 +16,42 @@
  * Author: Anthony Granger <grangeranthony@gmail.com>
  */
 
-#include <pdfModel.h>
-#include <pageImageProvider.h>
+// Local
+#include "pdfModel.h"
+#include "pageImageProvider.h"
 
+// Poppler
 #include <poppler/qt5/poppler-qt5.h>
+
+// Qt
 #include <QDebug>
 #include <QQmlEngine>
 #include <QQmlContext>
 
-PdfModel::PdfModel(QQuickItem* parent)
-  : QQuickItem(parent)
+// stl
+#include <memory>
+
+
+static QVariantMap convertDestination(const Poppler::LinkDestination& destination)
+{
+  QVariantMap result;
+  result["page"] = destination.pageNumber() - 1;
+  result["top"] = destination.top();
+  result["left"] = destination.left();
+  return result;
+}
+
+
+PdfModel::PdfModel(QObject* parent)
+  : QObject(parent)
 {}
+
 
 void PdfModel::setPath(QString& pathName)
 {
+  if (pathName == path)
+    return;
+
   if (pathName.isEmpty())
   {
     DEBUG << "Can't load the document, path is empty.";
@@ -40,26 +62,10 @@ void PdfModel::setPath(QString& pathName)
   this->path = pathName;
   emit pathChanged(pathName);
 
-  if (!loadDocument(pathName))
-    return;
-
-  loadProvider();
-  emit loadedChanged();
-}
-
-QStringList PdfModel::getPages() const
-{
-  return pages;
-}
-
-int PdfModel::loadDocument(QString& pathName)
-{
-  QTime t;
-  t.start();
-  DEBUG << "Loading document...";
-
+  // Load document
   clear();
-  this->document = Poppler::Document::load(pathName);
+  DEBUG << "Loading document...";
+  document = Poppler::Document::load(path);
 
   if (!document || document->isLocked())
   {
@@ -67,21 +73,59 @@ int PdfModel::loadDocument(QString& pathName)
     emit error("Can't open the document located at " + pathName);
     delete document;
     document = nullptr;
-    return 0;
+    return;
   }
 
+  // Create image provider
   document->setRenderHint(Poppler::Document::Antialiasing, true);
   document->setRenderHint(Poppler::Document::TextAntialiasing, true);
+  loadProvider();
 
-  DEBUG << "Document loaded successfully in" << t.elapsed() << "ms.";
+  // Fill in pages data
+  const int numPages = document->numPages();
+  for (int i = 0; i < numPages; ++i)
+  {
+    std::unique_ptr<Poppler::Page> page(document->page(i));
 
-  return 1;
+    QVariantMap pageData;
+    pageData["image"] = "image://" + providerName + "/page/" + QString::number(i + 1);
+    pageData["size"] = page->pageSizeF();
+
+    QVariantList pageLinks;
+    auto links = page->links();
+    for (const auto& link : links)
+    {
+      if (link->linkType() == Poppler::Link::Goto)
+      {
+        auto gotoLink = static_cast<Poppler::LinkGoto*>(link);
+        if (!gotoLink->isExternal())
+        {
+          pageLinks.append(QVariantMap{{ "rect", link->linkArea().normalized() }, { "destination", convertDestination(gotoLink->destination()) }});
+        }
+      }
+    }
+    pageData["links"] = pageLinks;
+
+    pages.append(pageData);
+  }
+  emit pagesChanged();
+
+  DEBUG << "Document loaded successfully";
+  emit loadedChanged();
 }
+
+
+QVariantList PdfModel::getPages() const
+{
+  return pages;
+}
+
 
 bool PdfModel::getLoaded() const
 {
   return document != nullptr;
 }
+
 
 void PdfModel::loadProvider()
 {
@@ -92,13 +136,9 @@ void PdfModel::loadProvider()
   providerName = "poppler" + prefix;
   engine->addImageProvider(providerName, new PageImageProvider(document));
 
-  const int pagesNum = document->numPages();
-  for (auto i = 0; i < pagesNum; ++i)
-    pages.append("image://" + providerName + "/page/" + QString::number(i + 1));
-
-  emit pagesChanged();
   DEBUG << "Image provider loaded successfully !" << qPrintable("(" + providerName + ")");
 }
+
 
 void PdfModel::clear()
 {
@@ -107,6 +147,7 @@ void PdfModel::clear()
     QQmlEngine* engine = QQmlEngine::contextForObject(this)->engine();
     if (engine)
       engine->removeImageProvider(providerName);
+    providerName.clear();
   }
 
   delete document;
@@ -115,6 +156,7 @@ void PdfModel::clear()
   pages.clear();
   emit pagesChanged();
 }
+
 
 PdfModel::~PdfModel()
 {

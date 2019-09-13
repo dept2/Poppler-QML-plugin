@@ -16,33 +16,27 @@
  * Author: Anthony Granger <grangeranthony@gmail.com>
  */
 
-
-#include <poppler/qt5/poppler-qt5.h>
-#include <QQuickImageProvider>
-#include <QDebug>
-#include <QPaintDevice>
-
+// Local
 #include "pageImageProvider.h"
 #include "pdfModel.h"
 
+// Qt
+#include <QDebug>
+
+
 PageImageProvider::PageImageProvider(Poppler::Document* pdfDocument)
-  : QQuickImageProvider(QQuickImageProvider::Image)
+  : QQuickImageProvider(QQuickImageProvider::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading)
   , document(pdfDocument)
 {}
 
+
 QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSize& requestedSize)
 {
-  Q_UNUSED(size)
-
   QTime t;
   t.start();
 
-  float scale = 1.0;
   QString type = id.section("/", 0, 0);
   QImage result;
-  QSizeF pageSize;
-  QSizeF pageSizePhys;
-  float res = 0;
 
   if (document && type == "page")
   {
@@ -52,24 +46,16 @@ QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSi
 
     QScopedPointer <Poppler::Page> page(document->page(numPage - 1));
 
-    pageSize = page->pageSizeF();
+    QSizeF pageSize = page->pageSizeF();
+    DEBUG << "Requested size:" << requestedSize << "Page size:" << pageSize;
 
-    pageSizePhys.setWidth(pageSize.width() / 72);
-    //pageSizePhys.setHeight(pageSize.height() / 72);
+    double res = requestedSize.width() / (pageSize.width() / 72);
+    DEBUG << "Rendering resolution :" << res << "dpi";
 
-    DEBUG << "Requested size :" << requestedSize.width() << ";" << requestedSize.height();
+    result = page->renderToImage(res, res);
+    *size = result.size();
 
-    //if (pageSizePhys.height() >= pageSizePhys.width())
-    res = requestedSize.width() / pageSizePhys.width();
-    /*else
-            res = requestedSize.height() / pageSizePhys.height();*/
-
-    DEBUG << "Size :" << pageSizePhys.width() << ";" << pageSizePhys.height();
-    DEBUG << "Resolution :" << res;
-
-    result = page->renderToImage(scale * res, scale * res); //For poppler the first page have the id 0
-
-    DEBUG << "Page rendered in" << t.elapsed() << "ms.";
+    DEBUG << "Page rendered in" << t.elapsed() << "ms." << result.size();
   }
 
   return result;

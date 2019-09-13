@@ -19,27 +19,27 @@
 #ifndef PDFMODEL_H
 #define PDFMODEL_H
 
-#include <QQuickItem>
+#include <QObject>
 #include <poppler/qt5/poppler-qt5.h>
 
 #define DEBUG if (qgetenv("POPPLERPLUGIN_DEBUG") == "1") qDebug() << "Poppler plugin:"
 
-class PdfModel : public QQuickItem
+class PdfModel : public QObject
 {
   Q_OBJECT
   Q_DISABLE_COPY(PdfModel)
 
   public:
-    explicit PdfModel(QQuickItem* parent = nullptr);
+    explicit PdfModel(QObject* parent = nullptr);
     virtual ~PdfModel();
 
     Q_PROPERTY(QString path READ getPath WRITE setPath NOTIFY pathChanged)
     Q_PROPERTY(bool loaded READ getLoaded NOTIFY loadedChanged)
-    Q_PROPERTY(QStringList pages READ getPages NOTIFY pagesChanged)
+    Q_PROPERTY(QVariantList pages READ getPages NOTIFY pagesChanged)
 
     void setPath(QString& pathName);
     QString getPath() const { return path; }
-    QStringList getPages() const;
+    QVariantList getPages() const;
     bool getLoaded() const;
 
   signals:
@@ -48,18 +48,16 @@ class PdfModel : public QQuickItem
     void error(const QString& errorMessage);
     void pagesChanged();
 
-
   private:
-    int loadDocument(QString& pathName);
     void loadProvider();
     void clear();
 
     Poppler::Document* document = nullptr;
     QString providerName;
     QString path;
-    QStringList pages;
+    QVariantList pages;
 };
 
-QML_DECLARE_TYPE(PdfModel)
+Q_DECLARE_METATYPE(PdfModel*)
 
 #endif // PDFMODEL_H
