@@ -127,6 +127,33 @@ bool PdfModel::getLoaded() const
 }
 
 
+QVariantList PdfModel::search(int page, const QString& text, Qt::CaseSensitivity caseSensitivity)
+{
+  QVariantList result;
+  if (document == nullptr)
+  {
+    qWarning() << "Poppler plugin: no document to search";
+    return result;
+  }
+
+  if (page >= document->numPages() || page < 0)
+  {
+    qWarning() << "Poppler plugin: search page" << page << "isn't in a document";
+    return result;
+  }
+
+  std::unique_ptr<Poppler::Page> p(document->page(page));
+  auto searchResult = p->search(text, caseSensitivity == Qt::CaseInsensitive ? Poppler::Page::IgnoreCase : static_cast<Poppler::Page::SearchFlag>(0));
+
+  auto pageSize = p->pageSizeF();
+  for (const auto& r : searchResult)
+  {
+    result.append(QRectF(r.left() / pageSize.width(), r.top() / pageSize.height(), r.width() / pageSize.width(), r.height() / pageSize.height()));
+  }
+  return result;
+}
+
+
 void PdfModel::loadProvider()
 {
   DEBUG << "Loading image provider...";

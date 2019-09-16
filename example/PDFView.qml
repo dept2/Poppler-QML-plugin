@@ -9,15 +9,140 @@ Item {
   property alias path: poppler.path
   property real zoom: 1.0
 
-  Poppler {
-    id: poppler
+  property int count: poppler.pages.length
+  property int currentPage: -1
+
+  function search(text) {
+    if (!poppler.loaded) return
+
+    if (text.length === 0) {
+      __currentSearchTerm = ''
+      __currentSearchResultIndex = -1
+      __currentSearchResults = []
+    } else if (text === __currentSearchTerm) {
+      if (__currentSearchResultIndex < __currentSearchResults.length - 1) {
+        __currentSearchResultIndex++
+        __scrollTo(__currentSearchResult)
+      } else {
+        var page = __currentSearchResult.page
+        __currentSearchResultIndex = -1
+        __currentSearchResults = []
+        if (page < count - 1) {
+          __search(page + 1, __currentSearchTerm)
+        } else {
+          root.searchRestartedFromTheBeginning()
+          __search(0, __currentSearchTerm)
+        }
+      }
+    } else {
+      __currentSearchTerm = text
+      __currentSearchResultIndex = -1
+      __currentSearchResults = []
+      __search(currentPage, text)
+    }
   }
 
-  function goTo(destination) {
+  signal searchNotFound
+  signal searchRestartedFromTheBeginning
+
+  property string __currentSearchTerm
+  property int __currentSearchResultIndex: -1
+  property var __currentSearchResults
+  property var __currentSearchResult: __currentSearchResultIndex > -1 ? __currentSearchResults[__currentSearchResultIndex] : { page: -1, rect: Qt.rect(0,0,0,0) }
+
+  function __search(startPage, text) {
+    if (startPage >= count) throw new Error('Start page index is larger than number of pages in document')
+
+    function resultFound(page, result) {
+      var searchResults = []
+      for (var i = 0; i < result.length; ++i) {
+        searchResults.push({ page: page, rect: result[i] })
+      }
+      __currentSearchResults = searchResults
+      __currentSearchResultIndex = 0
+      __scrollTo(__currentSearchResult)
+    }
+
+    var found = false
+    for (var page = startPage; page < count; ++page) {
+      var result = poppler.search(page, text)
+
+      if (result.length > 0) {
+        found = true
+        resultFound(page, result)
+        break
+      }
+    }
+
+    if (!found) {
+      for (page = 0; page < startPage; ++page) {
+        result = poppler.search(page, text)
+
+        if (result.length > 0) {
+          found = true
+          root.searchRestartedFromTheBeginning()
+          resultFound(page, result)
+          break
+        }
+      }
+    }
+
+    if (!found) {
+      root.searchNotFound()
+    }
+  }
+
+
+  Poppler {
+    id: poppler
+    onLoadedChanged: {
+      __updateCurrentPage()
+      __currentSearchTerm = ''
+      __currentSearchResultIndex = -1
+      __currentSearchResults = []
+    }
+  }
+
+  // Current page
+  function __updateCurrentPage () {
+    var p = pagesView.indexAt(pagesView.width / 2, pagesView.contentY + pagesView.height / 2)
+    if (p === -1)
+      p = pagesView.indexAt(pagesView.width / 2, pagesView.contentY + pagesView.height / 2 + pagesView.spacing)
+    currentPage = p
+  }
+
+  Connections {
+    target: pagesView
+    onContentYChanged: __updateCurrentPage()
+  }
+
+  function __goTo (destination) {
     pagesView.positionViewAtIndex(destination.page, ListView.Beginning)
     var pageHeight = poppler.pages[destination.page].size.height * zoom
     var scroll = Math.round(destination.top * pageHeight)
     pagesView.contentY += scroll
+  }
+
+  function __scrollTo(destination) {
+    if (destination.page !== currentPage) {
+      pagesView.positionViewAtIndex(destination.page, ListView.Beginning)
+    }
+
+    var i = pagesView.itemAt(pagesView.width / 2, pagesView.contentY + pagesView.height / 2)
+    if (i === null)
+      i = pagesView.itemAt(pagesView.width / 2, pagesView.contentY + pagesView.height / 2 + pagesView.spacing)
+
+    var pageHeight = poppler.pages[destination.page].size.height * zoom
+    var pageY = i.y - pagesView.contentY
+
+    var bottomDistance = pagesView.height - (pageY + Math.round(destination.rect.bottom * pageHeight))
+    var topDistance = pageY + Math.round(destination.rect.top * pageHeight)
+    if (bottomDistance < 0) {
+      // The found term is lower than the bottom of viewport
+      pagesView.contentY -= bottomDistance - pagesView.spacing
+    } else if (topDistance < 0) {
+      pagesView.contentY += topDistance - pagesView.spacing
+    }
   }
 
   ListView {
@@ -47,32 +172,26 @@ Item {
         width: sourceSize.width
         height: sourceSize.height
 
-//        Rectangle {
-//          color: "transparent"
-//          border.color: "red"
-//          border.width: 1
-//          anchors.fill: parent
-//        }
-
         Repeater {
           model: modelData.links
           delegate: MouseArea {
-            z: 100
-            x: Math.round(modelData.rect.x * pageImage.width)
-            y: Math.round(modelData.rect.y * pageImage.height)
-            width: Math.round(modelData.rect.width * pageImage.width)
-            height: Math.round(modelData.rect.height * pageImage.height)
+            x: Math.round(modelData.rect.x * parent.width)
+            y: Math.round(modelData.rect.y * parent.height)
+            width: Math.round(modelData.rect.width * parent.width)
+            height: Math.round(modelData.rect.height * parent.height)
 
             cursorShape: Qt.PointingHandCursor
-            onClicked: goTo(modelData.destination)
-
-//            Rectangle {
-//              anchors.fill: parent
-//              color: "transparent"
-//              border.color: "blue"
-//              border.width: 1
-//            }
+            onClicked: __goTo(modelData.destination)
           }
+        }
+
+        Rectangle {
+          visible: __currentSearchResult.page === index
+          color: Qt.rgba(1, 1, .2, .4)
+          x: Math.round(__currentSearchResult.rect.x * parent.width)
+          y: Math.round(__currentSearchResult.rect.y * parent.height)
+          width: Math.round(__currentSearchResult.rect.width * parent.width)
+          height: Math.round(__currentSearchResult.rect.height * parent.height)
         }
       }
     }
@@ -80,20 +199,6 @@ Item {
     ScrollBar.vertical: ScrollBar {
       minimumSize: 0.04
     }
-  }
-
-  Slider {
-    id: zoomSlider
-
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
-    anchors.margins: 16
-    from: 0.5
-    to: 2
-    stepSize: .1
-    value: 1
-
-    onValueChanged: root.zoom = value
   }
 
 //  MouseArea {
@@ -112,27 +217,4 @@ Item {
 //      }
 //    }
 //  }
-
-  Keys.onPressed: {
-    if (event.modifiers & Qt.ControlModifier) {
-      if (event.key === Qt.Key_Minus) {
-        zoomSlider.decrease()
-        event.accepted = true
-      } else if (event.key === Qt.Key_Plus) {
-        zoomSlider.increase()
-        event.accepted = true
-      } else if (event.key === Qt.Key_0) {
-        zoomSlider.value = 1
-        event.accepted = true
-      }
-    } else if (event.modifiers === Qt.NoModifier) {
-      if (event.key === Qt.Key_Home) {
-        pagesView.positionViewAtBeginning()
-        event.accepted = true
-      } else if (event.key === Qt.Key_End) {
-        pagesView.positionViewAtEnd()
-        event.accepted = true
-      }
-    }
-  }
 }

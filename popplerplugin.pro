@@ -36,3 +36,4 @@ unix {
 
 
 unix|win32: LIBS += -lpoppler-qt5
+

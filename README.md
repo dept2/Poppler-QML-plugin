@@ -77,3 +77,9 @@ Each page contains several properties
     * `page` - page index
     * `top` - top coordinate of link destination (relative to page size, same as rect property)
     * `left` - left coordinate of link destination (relative to page size)
+
+## Methods
+
+### array[rect] search(int page, string text)
+
+Returns list of text highlight rectangles for the `page`. May return empty array.

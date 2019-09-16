@@ -42,6 +42,8 @@ class PdfModel : public QObject
     QVariantList getPages() const;
     bool getLoaded() const;
 
+    Q_INVOKABLE QVariantList search(int page, const QString& text, Qt::CaseSensitivity caseSensitivity = Qt::CaseSensitive);
+
   signals:
     void pathChanged(const QString& newPath);
     void loadedChanged();
