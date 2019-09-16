@@ -2,7 +2,14 @@
 
 Extremely basic plugin for rendering PDF files using [Poppler](https://poppler.freedesktop.org/) in QML apps.
 
+Supported features:
+* Rendering PDF pages in any resolution (controlled by `Image` item `sourceSize` property)
+* Parsing document links
+* Document search
+
 Based on discontinued [poppler-qml-plugin](https://launchpad.net/poppler-qml-plugin) by Canonical (GPL v3).
+
+![Example application screenshot](/example/screenshot.png?raw=true)
 
 ## Build and install
 
