@@ -11,6 +11,11 @@ Based on discontinued [poppler-qml-plugin](https://launchpad.net/poppler-qml-plu
 
 ![Example application screenshot](/example/screenshot.png?raw=true)
 
+## Requirements
+* Qt 5.11+
+* Qt Quick Controls 2
+* Poppler-Qt5 0.31+
+
 ## Build and install
 
 ```sh
@@ -28,8 +33,66 @@ See example app sources in [example directory](example/).
 Set `POPPLERPLUGIN_DEBUG` environment variable to `1` before starting application.
 
 ---
+# Using `PDFView` QML component
 
-# Usage
+`PDFView` is pure QML component, utilizing `Poppler` native component from this plugin. It serves as a good start when you just need to display PDF document.
+
+If it doesn't suit your purposes very well, take a look at it source and implement the view more suiting your target functionality.
+
+```qml
+import org.docviewer.poppler 1.0
+
+...
+
+PDFView {
+  anchors.fill: parent
+  path: "path_to_file.pdf"
+}
+```
+
+## Properties
+
+### string path
+
+Local file path to open.
+
+### bool loaded
+
+### real zoom
+
+Zoom level. Defaults to `1.0`, at this component show document at 72 dpi.
+
+### int count
+
+Number of pages in opened document
+
+### int currentPage
+
+Number of page currently shown in a center of viewport, starting with 0.
+
+## Methods
+
+### search(string text)
+
+Starts search for a passed substring. When found, scrolls view to show the string found. Repeating calls to this method passing the same string will result in moving to next occurance of the text.
+
+## Signals
+
+### error(string errorMessage)
+
+Sent when there was a problem opening a document
+
+### searchNotFound
+
+Sent when recently started search haven't found any occurences of string requested.
+
+### searchRestartedFromTheBeggining
+
+Sent when search reached the end of a document and was started from the beginning of a document.
+
+---
+
+# Using `Poppler` object
 
 ## Opening PDF document
 
@@ -90,3 +153,9 @@ Each page contains several properties
 ### array[rect] search(int page, string text)
 
 Returns list of text highlight rectangles for the `page`. May return empty array.
+
+## Signals
+
+### error(string errorMessage)
+
+Sent when there was a problem opening a document.

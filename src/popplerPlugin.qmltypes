@@ -1,0 +1,41 @@
+import QtQuick.tooling 1.2
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only.
+
+Module {
+    dependencies: [
+        "QtQuick 2.8",
+        "QtQuick.Controls 2.4"
+    ]
+    Component {
+        name: "PdfModel"
+        prototype: "QObject"
+        exports: ["Poppler 1.0"]
+        exportMetaObjectRevisions: [0]
+        Property { name: "path"; type: "string" }
+        Property { name: "loaded"; type: "bool"; isReadonly: true }
+        Property { name: "pages"; type: "QVariantList"; isReadonly: true }
+        Signal {
+            name: "pathChanged"
+            Parameter { name: "newPath"; type: "string" }
+        }
+        Signal {
+            name: "error"
+            Parameter { name: "errorMessage"; type: "string" }
+        }
+        Method {
+            name: "search"
+            type: "QVariantList"
+            Parameter { name: "page"; type: "int" }
+            Parameter { name: "text"; type: "string" }
+            Parameter { name: "caseSensitivity"; type: "Qt::CaseSensitivity" }
+        }
+        Method {
+            name: "search"
+            type: "QVariantList"
+            Parameter { name: "page"; type: "int" }
+            Parameter { name: "text"; type: "string" }
+        }
+    }
+}

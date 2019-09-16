@@ -1,0 +1,4 @@
+module org.docviewer.poppler
+PDFView 1.0 PDFView.qml
+plugin popplerPlugin
+typeinfo popplerPlugin.qmltypes

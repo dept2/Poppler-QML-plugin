@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>PDFView.qml</file>
         <file>qtquickcontrols2.conf</file>
     </qresource>
 </RCC>

@@ -7,10 +7,13 @@ Item {
   id: root
 
   property alias path: poppler.path
+  property alias loaded: poppler.loaded
   property real zoom: 1.0
 
   property int count: poppler.pages.length
   property int currentPage: -1
+
+  signal error(string errorMessage)
 
   function search(text) {
     if (!poppler.loaded) return
@@ -101,6 +104,7 @@ Item {
       __currentSearchResultIndex = -1
       __currentSearchResults = []
     }
+    onError: root.error(errorMessage)
   }
 
   // Current page
@@ -200,21 +204,4 @@ Item {
       minimumSize: 0.04
     }
   }
-
-//  MouseArea {
-//    anchors.fill: parent
-//    acceptedButtons: Qt.NoButton
-//    hoverEnabled: false
-//    onWheel: {
-//      if (wheel.modifiers & Qt.ControlModifier) {
-//        if (wheel.angleDelta.y > 0) {
-//          zoomSlider.increase()
-//        } else {
-//          zoomSlider.decrease()
-//        }
-//      } else {
-//        wheel.accepted = false
-//      }
-//    }
-//  }
 }
