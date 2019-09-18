@@ -1,10 +1,10 @@
-import QtQuick 2.11
-import QtQuick.Controls 2.4
+import QtQuick 2.9
 
 import org.docviewer.poppler 1.0
 
-Item {
-  id: root
+
+ListView {
+  id: pagesView
 
   property alias path: poppler.path
   property alias loaded: poppler.loaded
@@ -12,6 +12,8 @@ Item {
 
   property int count: poppler.pages.length
   property int currentPage: -1
+
+  property color searchHighlightColor: Qt.rgba(1, 1, .2, .4)
 
   signal error(string errorMessage)
 
@@ -33,7 +35,7 @@ Item {
         if (page < count - 1) {
           __search(page + 1, __currentSearchTerm)
         } else {
-          root.searchRestartedFromTheBeginning()
+          pagesView.searchRestartedFromTheBeginning()
           __search(0, __currentSearchTerm)
         }
       }
@@ -83,7 +85,7 @@ Item {
 
         if (result.length > 0) {
           found = true
-          root.searchRestartedFromTheBeginning()
+          pagesView.searchRestartedFromTheBeginning()
           resultFound(page, result)
           break
         }
@@ -91,7 +93,7 @@ Item {
     }
 
     if (!found) {
-      root.searchNotFound()
+      pagesView.searchNotFound()
     }
   }
 
@@ -104,7 +106,7 @@ Item {
       __currentSearchResultIndex = -1
       __currentSearchResults = []
     }
-    onError: root.error(errorMessage)
+    onError: pagesView.error(errorMessage)
   }
 
   // Current page
@@ -149,59 +151,52 @@ Item {
     }
   }
 
-  ListView {
-    id: pagesView
-    anchors.fill: parent
-    anchors.topMargin: 10
-    anchors.bottomMargin: 10
-    spacing: 20
+  spacing: 20
 
-    boundsBehavior: Flickable.StopAtBounds
+  boundsBehavior: Flickable.StopAtBounds
 
-    model: poppler.pages
-    delegate: Item {
-      width: parent.width
-      height: pageImage.height
-      Image {
-        id: pageImage
-        x: Math.round((parent.width - sourceSize.width) / 2)
+  model: poppler.pages
 
-        cache: false
-        fillMode: Image.Pad
+  header: Item { height: 10 }
+  footer: Item { height: 10 }
+  delegate: Item {
+    width: parent.width
+    height: pageImage.height
+    Image {
+      id: pageImage
+      x: Math.round((parent.width - sourceSize.width) / 2)
 
-        sourceSize.width: Math.round(modelData.size.width * zoom)
-        sourceSize.height: Math.round(modelData.size.height * zoom)
-        source: modelData.image
+      cache: false
+      fillMode: Image.Pad
 
-        width: sourceSize.width
-        height: sourceSize.height
+      sourceSize.width: Math.round(modelData.size.width * zoom)
+      sourceSize.height: Math.round(modelData.size.height * zoom)
+      source: modelData.image
 
-        Repeater {
-          model: modelData.links
-          delegate: MouseArea {
-            x: Math.round(modelData.rect.x * parent.width)
-            y: Math.round(modelData.rect.y * parent.height)
-            width: Math.round(modelData.rect.width * parent.width)
-            height: Math.round(modelData.rect.height * parent.height)
+      width: sourceSize.width
+      height: sourceSize.height
 
-            cursorShape: Qt.PointingHandCursor
-            onClicked: __goTo(modelData.destination)
-          }
-        }
+      Repeater {
+        model: modelData.links
+        delegate: MouseArea {
+          x: Math.round(modelData.rect.x * parent.width)
+          y: Math.round(modelData.rect.y * parent.height)
+          width: Math.round(modelData.rect.width * parent.width)
+          height: Math.round(modelData.rect.height * parent.height)
 
-        Rectangle {
-          visible: __currentSearchResult.page === index
-          color: Qt.rgba(1, 1, .2, .4)
-          x: Math.round(__currentSearchResult.rect.x * parent.width)
-          y: Math.round(__currentSearchResult.rect.y * parent.height)
-          width: Math.round(__currentSearchResult.rect.width * parent.width)
-          height: Math.round(__currentSearchResult.rect.height * parent.height)
+          cursorShape: Qt.PointingHandCursor
+          onClicked: __goTo(modelData.destination)
         }
       }
-    }
 
-    ScrollBar.vertical: ScrollBar {
-      minimumSize: 0.04
+      Rectangle {
+        visible: __currentSearchResult.page === index
+        color: pagesView.searchHighlightColor
+        x: Math.round(__currentSearchResult.rect.x * parent.width)
+        y: Math.round(__currentSearchResult.rect.y * parent.height)
+        width: Math.round(__currentSearchResult.rect.width * parent.width)
+        height: Math.round(__currentSearchResult.rect.height * parent.height)
+      }
     }
   }
 }

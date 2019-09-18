@@ -9,12 +9,12 @@ Supported features:
 
 Based on discontinued [poppler-qml-plugin](https://launchpad.net/poppler-qml-plugin) by Canonical (GPL v3).
 
-![Example application screenshot](/example/screenshot.png?raw=true)
+![Example application screenshot](example/screenshot.png?raw=true)
 
 ## Requirements
 * Qt 5.11+
-* Qt Quick Controls 2
 * Poppler-Qt5 0.31+
+* Qt Quick Controls 2 (only for an example app)
 
 ## Build and install
 
@@ -35,9 +35,14 @@ Set `POPPLERPLUGIN_DEBUG` environment variable to `1` before starting applicatio
 ---
 # Using `PDFView` QML component
 
-`PDFView` is pure QML component, utilizing `Poppler` native component from this plugin. It serves as a good start when you just need to display PDF document.
+`PDFView` is pure QML component, utilizing `Poppler` native component from this plugin.
+It serves as a good start when you just need to display PDF document.
 
-If it doesn't suit your purposes very well, take a look at it source and implement the view more suiting your target functionality.
+If it doesn't suit your purposes very well, take a look at it source and implement the
+view more suiting your target functionality.
+
+This component is an extended ListView (with custom delegate and some other logic inside),
+so you can simply add scroll bar or customize page spacing from your application code.
 
 ```qml
 import org.docviewer.poppler 1.0
@@ -69,6 +74,10 @@ Number of pages in opened document
 ### int currentPage
 
 Number of page currently shown in a center of viewport, starting with 0.
+
+### color searchHighlightColor
+
+Color of found search term highlight. Defaults to `Qt.rgba(1, 1, .2, .4)`.
 
 ## Methods
 

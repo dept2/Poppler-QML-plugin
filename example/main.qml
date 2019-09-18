@@ -80,6 +80,10 @@ ApplicationWindow {
     focus: true
     path: fileDialog.file.toString().substring(6)
 
+    ScrollBar.vertical: ScrollBar {
+      minimumSize: 0.04
+    }
+
     onSearchRestartedFromTheBeginning: {
       notifyLabel.text = qsTr("Search restarted from the beginning")
       notifyAnimation.start()

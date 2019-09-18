@@ -5,8 +5,7 @@ import QtQuick.tooling 1.2
 
 Module {
     dependencies: [
-        "QtQuick 2.8",
-        "QtQuick.Controls 2.4"
+        "QtQuick 2.9"
     ]
     Component {
         name: "PdfModel"
