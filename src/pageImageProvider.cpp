@@ -21,6 +21,7 @@
 #include "pdfModel.h"
 
 // Qt
+#include <QElapsedTimer>
 #include <QDebug>
 
 
@@ -32,7 +33,7 @@ PageImageProvider::PageImageProvider(Poppler::Document* pdfDocument)
 
 QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSize& requestedSize)
 {
-  QTime t;
+  QElapsedTimer t;
   t.start();
 
   QString type = id.section("/", 0, 0);
