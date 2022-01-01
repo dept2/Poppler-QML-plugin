@@ -24,6 +24,8 @@ make
 make install
 ```
 
+To install to other path, use `qmake INSTALL_PREFIX=<path>`, everything stays the same.
+
 ## Example
 
 See example app sources in [example directory](example/).
