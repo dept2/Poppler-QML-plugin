@@ -4,7 +4,7 @@ QT += qml quick
 CONFIG += qt plugin
 TEMPLATE = lib
 
-LIBS += -lpoppler-qt5
+LIBS += -lpoppler-qt6
 
 # Input
 SOURCES += \

@@ -20,7 +20,7 @@
 #define PDFMODEL_H
 
 #include <QObject>
-#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt6/poppler-qt6.h>
 
 #define DEBUG if (qgetenv("POPPLERPLUGIN_DEBUG") == "1") qDebug() << "Poppler plugin:"
 
@@ -54,7 +54,7 @@ class PdfModel : public QObject
     void loadProvider();
     void clear();
 
-    Poppler::Document* document = nullptr;
+    std::unique_ptr<Poppler::Document> document = nullptr;
     QString providerName;
     QString path;
     QVariantList pages;

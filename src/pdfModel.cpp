@@ -21,7 +21,7 @@
 #include "pageImageProvider.h"
 
 // Poppler
-#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt6/poppler-qt6.h>
 
 // Qt
 #include <QDebug>
@@ -71,7 +71,6 @@ void PdfModel::setPath(QString& pathName)
   {
     DEBUG << "ERROR : Can't open the document located at " + pathName;
     emit error("Can't open the document located at " + pathName);
-    delete document;
     document = nullptr;
     return;
   }
@@ -97,7 +96,7 @@ void PdfModel::setPath(QString& pathName)
     {
       if (link->linkType() == Poppler::Link::Goto)
       {
-        auto gotoLink = static_cast<Poppler::LinkGoto*>(link);
+        auto gotoLink = static_cast<Poppler::LinkGoto*>(link.get());
         if (!gotoLink->isExternal())
         {
           pageLinks.append(QVariantMap{{ "rect", link->linkArea().normalized() }, { "destination", convertDestination(gotoLink->destination()) }});
@@ -161,7 +160,7 @@ void PdfModel::loadProvider()
 
   const QString& prefix = QString::number(quintptr(this));
   providerName = "poppler" + prefix;
-  engine->addImageProvider(providerName, new PageImageProvider(document));
+  engine->addImageProvider(providerName, new PageImageProvider(document.get()));
 
   DEBUG << "Image provider loaded successfully !" << qPrintable("(" + providerName + ")");
 }
@@ -177,7 +176,6 @@ void PdfModel::clear()
     providerName.clear();
   }
 
-  delete document;
   document = nullptr;
   emit loadedChanged();
   pages.clear();

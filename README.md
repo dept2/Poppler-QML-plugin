@@ -12,8 +12,8 @@ Based on discontinued [poppler-qml-plugin](https://launchpad.net/poppler-qml-plu
 ![Example application screenshot](example/screenshot.png?raw=true)
 
 ## Requirements
-* Qt 5.11+
-* Poppler-Qt5 0.31+
+* Qt 6.2+
+* Poppler-Qt6 0.31+
 * Qt Quick Controls 2 (only for an example app)
 
 ## Build and install
