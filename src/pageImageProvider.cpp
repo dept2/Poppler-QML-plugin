@@ -45,7 +45,7 @@ QImage PageImageProvider::requestImage(const QString& id, QSize* size, const QSi
 
     DEBUG << "Page" << numPage << "requested";
 
-    QScopedPointer <Poppler::Page> page(document->page(numPage - 1));
+    auto page = document->page(numPage - 1);
 
     QSizeF pageSize = page->pageSizeF();
     DEBUG << "Requested size:" << requestedSize << "Page size:" << pageSize;

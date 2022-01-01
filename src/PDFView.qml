@@ -106,7 +106,7 @@ ListView {
       __currentSearchResultIndex = -1
       __currentSearchResults = []
     }
-    onError: pagesView.error(errorMessage)
+    onError: (errorMessage) => pagesView.error(errorMessage)
   }
 
   // Current page
@@ -119,7 +119,9 @@ ListView {
 
   Connections {
     target: pagesView
-    onContentYChanged: __updateCurrentPage()
+    function onContentYChanged() {
+      __updateCurrentPage()
+    }
   }
 
   function __goTo (destination) {

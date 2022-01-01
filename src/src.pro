@@ -4,7 +4,7 @@ QT += qml quick
 CONFIG += qt plugin
 TEMPLATE = lib
 
-LIBS += -lpoppler-qt5
+LIBS += -lpoppler-qt6
 
 # Input
 SOURCES += \
@@ -31,7 +31,10 @@ qmltypes.commands = $$[QT_INSTALL_BINS]/qmlplugindump org.docviewer.poppler 1.0 
 qmltypes.depends = $$QMAKE_RESOLVED_TARGET
 QMAKE_EXTRA_TARGETS += qmltypes
 
-installPath = $$[QT_INSTALL_QML]/org/docviewer/poppler/
+isEmpty(INSTALL_PREFIX) {
+  INSTALL_PREFIX = $$[QT_INSTALL_QML]
+}
+installPath = $${INSTALL_PREFIX}/org/docviewer/poppler/
 qmlFiles.path = $$installPath
 target.path = $$installPath
 INSTALLS += target qmlFiles

@@ -20,7 +20,7 @@
 #define PAGEIMAGEPROVIDER_H
 
 #include <QQuickImageProvider>
-#include <poppler/qt5/poppler-qt5.h>
+#include <poppler/qt6/poppler-qt6.h>
 
 class PageImageProvider : public QQuickImageProvider
 {
